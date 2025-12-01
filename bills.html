@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sriram Jewellery Billing System</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fdf6e3;
+      margin: 0;
+      padding: 40px 20px;
+      color: #4e342e;
+    }
+
+    .container {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      max-width: 850px;
+      margin: auto;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      border: 2px solid #d4af37;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .logo img {
+      width: 90px;
+      border-radius: 6px;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #a67c00;
+    }
+
+    h2 {
+      margin: 5px 0 15px;
+      color: #6d4c41;
+    }
+
+    .title-line {
+      width: 60%;
+      height: 3px;
+      background: #d4af37;
+      border: none;
+      margin: 10px auto 20px;
+    }
+
+    .address {
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 30px;
+      color: #5d4037;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    #bill {
+      background: #fef9e7;
+      margin-top: 25px;
+      padding: 20px;
+      border-left: 5px solid #d4af37;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #d4af37;
+      color: white;
+    }
+
+    .signature {
+      margin-top: 50px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .signature div {
+      width: 45%;
+      text-align: center;
+      border-top: 1px solid #000;
+      padding-top: 10px;
+      font-style: italic;
+    }
+
+    button {
+      margin-top: 25px;
+      padding: 12px 25px;
+      font-size: 16px;
+      background-color: #d4af37;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #fbc02d;
+    }
+
+    .total-highlight {
+      font-size: 22px;
+      font-weight: bold;
+      color: #ffffff;
+      background: #b71c1c;
+      padding: 10px 20px;
+      border: 3px double #000;
+      border-radius: 6px;
+      display: block;
+      margin: 20px auto;
+      text-align: center;
+      width: fit-content;
+    }
+
+    #printableBill {
+      display: none;
+    }
+
+    .terms-page {
+      padding: 40px;
+      font-size: 14px;
+      max-width: 850px;
+      margin: auto;
+      background: #fff;
+      page-break-before: always;
+    }
+
+    .finalBill {
+      border: 2px solid #d4af37;
+      padding: 30px;
+      background-color: #fffde7;
+      margin-bottom: 40px;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+      }
+
+      .container, button {
+        display: none;
+      }
+
+      #printableBill {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container" id="invoice">
+  <div class="logo">
+    <img src="image/download (5).jpg" alt="Sriram Jewellery Logo">
+  </div>
+
+  <h1 id="billTitle">SRIRAM JEWELLERS AND AGENCIES</h1>
+  <h2 id="billSubTitle">Invoice Bill</h2>
+  <hr class="title-line">
+
+  <div class="address">
+    Avinashi Rd, near PSGR Krishnammal College for Women,<br>
+    Peelamedu, Coimbatore, Tamil Nadu 641004<br>
+    Contact: 9629800666 / 9894100427
+  </div>
+
+  <!-- Inputs -->
+  <label for="billNo">Bill No:</label>
+  <input type="text" id="billNo" readonly>
+
+  <label for="gstNo">GST No:</label>
+  <input type="text" id="gstNo">
+
+  <label for="prefix">Prefix:</label>
+  <select id="prefix">
+    <option value="Mr.">Mr.</option>
+    <option value="Mrs.">Mrs.</option>
+    <option value="Miss">Miss</option>
+    <option value="Dr.">Dr.</option>
+  </select>
+
+  <label for="customerName">Customer Name:</label>
+  <input type="text" id="customerName">
+
+  <label for="billDate">Date:</label>
+  <input type="date" id="billDate">
+
+  <div id="itemsList">
+    <h3>Items</h3>
+    <div class="item">
+      <label>Item Name:</label>
+      <input type="text" class="itemName">
+
+      <label>Metal Type:</label>
+      <select class="metalType">
+        <option value="">-- Select --</option>
+        <option value="Gold 18K">Gold 18K</option>
+        <option value="Gold 22K">Gold 22K</option>
+        <option value="Gold 24K">Gold 24K</option>
+        <option value="Silver">Silver</option>
+      </select>
+
+      <label>Rate per gram (₹):</label>
+      <input type="number" class="goldRate">
+
+      <label>Weight (g):</label>
+      <input type="number" class="weight">
+
+      <label>Wastage (%):</label>
+      <input type="number" class="wastage">
+
+      <label>Making Charge (₹):</label>
+      <input type="number" class="makingCharge">
+    </div>
+  </div>
+  <button type="button" onclick="addItem()">➕ Add Item</button>
+
+  <label for="addons">Add-on Charges (₹):</label>
+  <input type="number" id="addons">
+
+  <label for="discount">Discount (₹):</label>
+  <input type="number" id="discount">
+
+  <hr>
+  <h3>Old Metal Exchange</h3>
+
+  <label for="oldMetalType">Old Metal Type:</label>
+  <select id="oldMetalType">
+    <option value="">-- Select --</option>
+    <option value="Gold 18K">Gold 18K</option>
+    <option value="Gold 22K">Gold 22K</option>
+    <option value="Gold 24K">Gold 24K</option>
+    <option value="Silver">Silver</option>
+  </select>
+
+  <label for="oldMetalWeight">Old Metal Weight (g):</label>
+  <input type="number" id="oldMetalWeight">
+
+  <label for="oldMetalRate">Old Metal Rate (₹/g):</label>
+  <input type="number" id="oldMetalRate">
+
+  <hr>
+
+  <div style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
+    <label style="margin: 0;">
+      <input type="checkbox" id="estimateCheck" onchange="toggleBillTitle()"> Estimate Bill (No GST)
+    </label>
+    <button onclick="printEstimate()">Estimate Slip</button>
+  </div>
+
+  <label for="paymentType">Payment Type:</label>
+  <select id="paymentType">
+    <option value="Cash">Cash</option>
+    <option value="Card">Card</option>
+    <option value="Online Payment">Online Payment</option>
+  </select>
+
+  <button onclick="calculateBill()">Calculate Bill</button>
+  <div id="bill"><strong>Total will appear here after calculation.</strong></div>
+
+  <div class="signature">
+    <div>Customer Signature</div>
+    <div>Salesperson Signature</div>
+  </div>
+
+  <button onclick="window.print()">Print Bill</button>
+</div>
+
+<!-- Printable -->
+<div id="printableBill">
+  <div class="finalBill">
+    <div class="logo">
+      <img src="image/download (5).jpg" alt="Sriram Jewellery Logo">
+    </div>
+    <h1 style="text-align:center;" id="printBillTitle">SRIRAM JEWELLERS AND AGENCIES</h1>
+    <h2 style="text-align:center;" id="printBillSubTitle">Invoice Bill</h2>
+    <div id="summaryContent">
+      <p>Bill details will appear here after calculation.</p>
+    </div>
+
+    <div class="signature" style="margin-top: 80px;">
+      <div>Customer Signature</div>
+      <div>Salesperson Signature</div>
+    </div>
+  </div>
+
+  <div class="terms-page">
+    <h2 style="text-align:center;">TERMS AND CONDITIONS</h2>
+    <ol>
+      <li>Rates are subject to market changes.</li>
+      <li>No alterations to the bill after generation.</li>
+      <li>Refunds/exchanges within 7 days only.</li>
+      <li>Original bill required for service.</li>
+      <li>All disputes are subject to Coimbatore jurisdiction.</li>
+      <li>Old gold value is adjusted at prevailing rates.</li>
+      <li>Items once sold will not be taken back without physical inspection.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ✅ SCRIPT SECTION -->
+<script>
+  function toggleBillTitle() {
+    const estimateCheck = document.getElementById('estimateCheck').checked;
+    const billSubTitle = document.getElementById('billSubTitle');
+    const printBillSubTitle = document.getElementById('printBillSubTitle');
+
+    if (estimateCheck) {
+      billSubTitle.textContent = 'Estimate Bill';
+      printBillSubTitle.textContent = 'Estimate Bill';
+    } else {
+      billSubTitle.textContent = 'Invoice Bill';
+      printBillSubTitle.textContent = 'Invoice Bill';
+    }
+  }
+
+  // Add new item fields
+  function addItem() {
+    const itemDiv = document.createElement("div");
+    itemDiv.classList.add("item");
+    itemDiv.innerHTML = `
+      <hr>
+      <label>Item Name:</label>
+      <input type="text" class="itemName">
+
+      <label>Metal Type:</label>
+      <select class="metalType">
+        <option value="">-- Select --</option>
+        <option value="Gold 18K">Gold 18K</option>
+        <option value="Gold 22K">Gold 22K</option>
+        <option value="Gold 24K">Gold 24K</option>
+        <option value="Silver">Silver</option>
+      </select>
+
+      <label>Rate per gram (₹):</label>
+      <input type="number" class="goldRate">
+
+      <label>Weight (g):</label>
+      <input type="number" class="weight">
+
+      <label>Wastage (%):</label>
+      <input type="number" class="wastage">
+
+      <label>Making Charge (₹):</label>
+      <input type="number" class="makingCharge">
+    `;
+    document.getElementById("itemsList").appendChild(itemDiv);
+  }
+
+  function calculateBill() {
+    const billNo = document.getElementById("billNo").value;
+    const prefix = document.getElementById("prefix").value;
+    const customerName = document.getElementById("customerName").value;
+    const billDate = document.getElementById("billDate").value;
+    const addons = parseFloat(document.getElementById("addons").value) || 0;
+    const discount = parseFloat(document.getElementById("discount").value) || 0;
+
+    const oldMetalType = document.getElementById("oldMetalType").value;
+    const oldMetalWeight = parseFloat(document.getElementById("oldMetalWeight").value) || 0;
+    const oldMetalRate = parseFloat(document.getElementById("oldMetalRate").value) || 0;
+
+    const estimateCheck = document.getElementById("estimateCheck").checked;
+    const paymentType = document.getElementById("paymentType").value;
+
+    // Loop through items
+    const items = document.querySelectorAll(".item");
+    let itemDetails = "<table><tr><th>Item</th><th>Type</th><th>Weight (g)</th><th>Wastage (%)</th><th>Rate (₹/g)</th><th>Metal Cost</th><th>Making</th><th>Total</th></tr>";
+    let totalBeforeExchange = 0;
+
+    items.forEach((item, index) => {
+      const itemName = item.querySelector(".itemName").value;
+      const metalType = item.querySelector(".metalType").value;
+      const goldRate = parseFloat(item.querySelector(".goldRate").value) || 0;
+      const weight = parseFloat(item.querySelector(".weight").value) || 0;
+      const wastage = parseFloat(item.querySelector(".wastage").value) || 0;
+      const makingCharge = parseFloat(item.querySelector(".makingCharge").value) || 0;
+
+      const grossWeight = weight + (weight * wastage / 100);
+      const metalCost = grossWeight * goldRate;
+      const itemTotal = metalCost + makingCharge;
+
+      totalBeforeExchange += itemTotal;
+
+      itemDetails += `
+        <tr>
+          <td>${itemName}</td>
+          <td>${metalType}</td>
+          <td>${weight}</td>
+          <td>${wastage}</td>
+          <td>₹${goldRate}</td>
+          <td>₹${metalCost.toFixed(2)}</td>
+          <td>₹${makingCharge}</td>
+          <td>₹${itemTotal.toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    itemDetails += "</table>";
+
+    const oldMetalValue = oldMetalWeight * oldMetalRate;
+    let amountAfterExchange = totalBeforeExchange + addons - discount - oldMetalValue;
+
+    let gstAmount = 0;
+    let finalAmount = amountAfterExchange;
+
+    if (!estimateCheck) {
+      gstAmount = amountAfterExchange * 0.03; // 3% GST
+      finalAmount = amountAfterExchange + gstAmount;
+    }
+
+    const summary = `
+      <strong>Customer:</strong> ${prefix} ${customerName}<br>
+      <strong>Bill No:</strong> ${billNo}<br>
+      <strong>Date:</strong> ${billDate}<br>
+      <hr>
+      ${itemDetails}
+      <hr>
+      <strong>Add-ons:</strong> ₹${addons}<br>
+      <strong>Discount:</strong> ₹${discount}<br>
+      <strong>Old Metal (${oldMetalType}):</strong> ${oldMetalWeight}g @ ₹${oldMetalRate} = ₹${oldMetalValue.toFixed(2)}<br>
+      <strong>Sub Total:</strong> ₹${amountAfterExchange.toFixed(2)}<br>
+      <strong>${estimateCheck ? "GST (Not applied)" : "GST (3%)"}:</strong> ₹${gstAmount.toFixed(2)}<br>
+      <span class="total-highlight">TOTAL PAYABLE: ₹${finalAmount.toFixed(2)}</span><br>
+      <strong>Payment Type:</strong> ${paymentType}
+    `;
+
+    document.getElementById("bill").innerHTML = summary;
+    document.getElementById("summaryContent").innerHTML = summary;
+
+    // ✅ Save bill to localStorage for Dashboard
+    const billData = {
+      billNo,
+      customer: `${prefix} ${customerName}`,
+      date: new Date().toISOString(),
+      total: finalAmount
+    };
+    let bills = JSON.parse(localStorage.getItem("bills") || "[]");
+    bills.push(billData);
+    localStorage.setItem("bills", JSON.stringify(bills));
+  }
+
+  function printEstimate() {
+    document.getElementById('estimateCheck').checked = true;
+    toggleBillTitle();
+    calculateBill();
+    window.print();
+  }
+
+  // ✅ Auto old gold rate logic
+  function updateOldRate() {
+    const firstRate = parseFloat(document.querySelector(".goldRate").value) || 0;
+    const oldType = document.getElementById("oldMetalType").value;
+    let adjustedRate = firstRate;
+
+    if (oldType === "Gold 22K") {
+      adjustedRate = firstRate * 0.85;
+    } else if (oldType === "Gold 18K") {
+      adjustedRate = firstRate * 0.75;
+    } else if (oldType === "Silver") {
+      adjustedRate = firstRate * 0.70;
+    } else if (oldType === "Gold 24K") {
+      adjustedRate = firstRate;
+    } else {
+      adjustedRate = 0;
+    }
+
+        document.getElementById("oldMetalRate").value = adjustedRate.toFixed(2);
+  }
+
+  // Trigger old gold calculation when type is changed or rate per gram is typed
+  document.getElementById("oldMetalType").addEventListener("change", updateOldRate);
+  document.querySelector(".goldRate").addEventListener("input", updateOldRate);
+
+  // ✅ On load, generate bill number & defaults
+  document.addEventListener("DOMContentLoaded", () => {
+    const now = new Date();
+    const billNo = "BILL" + now.getFullYear()
+      + String(now.getMonth() + 1).padStart(2, '0')
+      + String(now.getDate()).padStart(2, '0')
+      + String(now.getHours()).padStart(2, '0')
+      + String(now.getMinutes()).padStart(2, '0')
+      + String(now.getSeconds()).padStart(2, '0');
+    document.getElementById("billNo").value = billNo;
+
+    document.getElementById("gstNo").value = "33ABCDE1234F1Z5";
+  });
+</script>
+
+</body>
+</html>
+

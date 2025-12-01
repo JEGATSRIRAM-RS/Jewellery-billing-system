@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Sriram Jewellery</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #fffde7;
+      padding: 30px;
+      color: #4e342e;
+    }
+    h1, h2 {
+      color: #a67c00;
+    }
+
+    .totals {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .totals div {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #d4af37;
+      flex: 1;
+      text-align: center;
+    }
+
+    .filters {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .filters select,
+    .filters input[type="date"],
+    .filters input[type="number"] {
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    th {
+      background: #d4af37;
+      color: white;
+    }
+
+    button {
+      padding: 8px 14px;
+      background: #a67c00;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #fbc02d;
+    }
+
+    .action-btns button {
+      margin: 0 4px;
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+
+    .logout-btn {
+      float: right;
+      background: #a67c00;
+      margin-bottom: 20px;
+    }
+
+    .logout-btn:hover {
+      background: #fbc02d;
+    }
+
+    #filterTotal {
+      font-weight: bold;
+      font-size: 18px;
+      margin-top: 15px;
+      color: #4e342e;
+    }
+
+    @media print {
+      body {
+        background: white;
+        color: black;
+      }
+
+      .logout-btn,
+      .filters,
+      .totals,
+      .action-btns,
+      button {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+  <h1>Welcome, <span id="username"></span></h1>
+  <h2>Billing Dashboard</h2>
+
+  <!-- Hidden section during print -->
+  <div class="totals" id="summaryTotals">
+    <div>
+      <h3>Today's Total</h3>
+      <p id="todayTotal">₹0</p>
+    </div>
+    <div>
+      <h3>This Month</h3>
+      <p id="monthTotal">₹0</p>
+    </div>
+    <div>
+      <h3>This Year</h3>
+      <p id="yearTotal">₹0</p>
+    </div>
+  </div>
+
+  <!-- Filter Options -->
+  <div class="filters">
+    <label for="filterType"><strong>Filter by:</strong></label>
+    <select id="filterType" onchange="toggleFilterInputs(); renderFilteredBills();">
+      <option value="day">Today</option>
+      <option value="month">This Month</option>
+      <option value="year">This Year</option>
+      <option value="all">All</option>
+      <option value="customDate">Specific Date</option>
+      <option value="customMonth">Specific Month & Year</option>
+      <option value="customYear">Specific Year</option> <!-- ✅ Added -->
+    </select>
+
+    <input type="date" id="datePicker" class="hidden" onchange="renderFilteredBills()" />
+
+    <select id="monthSelect" class="hidden" onchange="renderFilteredBills()">
+      <option value="">-- Month --</option>
+      <option value="0">January</option>
+      <option value="1">February</option>
+      <option value="2">March</option>
+      <option value="3">April</option>
+      <option value="4">May</option>
+      <option value="5">June</option>
+      <option value="6">July</option>
+      <option value="7">August</option>
+      <option value="8">September</option>
+      <option value="9">October</option>
+      <option value="10">November</option>
+      <option value="11">December</option>
+    </select>
+
+    <input type="number" id="yearInput" class="hidden" placeholder="Year (e.g., 2025)" onchange="renderFilteredBills()" />
+
+    <button onclick="window.location.href='bills.html'">➕ Create New Bill</button>
+    <button onclick="window.print()">🖨️ Print Filtered Bills</button>
+  </div>
+
+  <h2>Filtered Bills</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Bill No</th>
+        <th>Customer</th>
+        <th>Date</th>
+        <th>Total (₹)</th>
+        <th class="action-btns">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="billTableBody"></tbody>
+  </table>
+
+  <div id="filterTotal">Total for selected filter: ₹0</div>
+
+  <script>
+    const user = localStorage.getItem("loggedInUser");
+    if (!user) {
+      alert("Please login to continue.");
+      window.location.href = "login.html";
+    }
+    document.getElementById("username").textContent = user;
+
+    let bills = JSON.parse(localStorage.getItem("bills") || "[]");
+
+    const today = new Date();
+    let todayTotal = 0, monthTotal = 0, yearTotal = 0;
+
+    bills.forEach(bill => {
+      const d = new Date(bill.date);
+      const amt = bill.total || 0;
+      if (d.toDateString() === today.toDateString()) {
+        todayTotal += amt;
+      }
+      if (d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()) {
+        monthTotal += amt;
+      }
+      if (d.getFullYear() === today.getFullYear()) {
+        yearTotal += amt;
+      }
+    });
+
+    document.getElementById("todayTotal").textContent = `₹${todayTotal.toFixed(2)}`;
+    document.getElementById("monthTotal").textContent = `₹${monthTotal.toFixed(2)}`;
+    document.getElementById("yearTotal").textContent = `₹${yearTotal.toFixed(2)}`;
+
+    function toggleFilterInputs() {
+      const filter = document.getElementById("filterType").value;
+      document.getElementById("datePicker").classList.add("hidden");
+      document.getElementById("monthSelect").classList.add("hidden");
+      document.getElementById("yearInput").classList.add("hidden");
+
+      if (filter === "customDate") {
+        document.getElementById("datePicker").classList.remove("hidden");
+      } else if (filter === "customMonth") {
+        document.getElementById("monthSelect").classList.remove("hidden");
+        document.getElementById("yearInput").classList.remove("hidden");
+      } else if (filter === "customYear") {   // ✅ new case
+        document.getElementById("yearInput").classList.remove("hidden");
+      }
+    }
+
+    function renderFilteredBills() {
+      const filter = document.getElementById("filterType").value;
+      const tbody = document.getElementById("billTableBody");
+      tbody.innerHTML = "";
+
+      const datePicker = document.getElementById("datePicker");
+      const monthSelect = document.getElementById("monthSelect");
+      const yearInput = document.getElementById("yearInput");
+
+      const now = new Date();
+      const selDate = datePicker.value ? new Date(datePicker.value) : null;
+      const selMonth = parseInt(monthSelect.value);
+      const selYear = parseInt(yearInput.value);
+
+      let totalFilteredAmount = 0;
+
+      const filtered = bills.filter(bill => {
+        const d = new Date(bill.date);
+        switch (filter) {
+          case "day": return d.toDateString() === now.toDateString();
+          case "month": return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+          case "year": return d.getFullYear() === now.getFullYear();
+          case "all": return true;
+          case "customDate": return selDate && d.toDateString() === selDate.toDateString();
+          case "customMonth":
+            if (isNaN(selMonth) || isNaN(selYear)) return false;
+            return d.getMonth() === selMonth && d.getFullYear() === selYear;
+          case "customYear":   // ✅ new case
+            if (isNaN(selYear)) return false;
+            return d.getFullYear() === selYear;
+          default: return false;
+        }
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5">No bills found for selected filter.</td></tr>`;
+        document.getElementById("filterTotal").textContent = `Total for selected filter: ₹0.00`;
+        return;
+      }
+
+      filtered.forEach(bill => {
+        const amt = bill.total || 0;
+        totalFilteredAmount += amt;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${bill.billNo}</td>
+          <td>${bill.customer}</td>
+          <td>${new Date(bill.date).toLocaleString()}</td>
+          <td>₹${amt.toFixed(2)}</td>
+          <td class="action-btns">
+            <button onclick="editBill('${bill.billNo}')">✏️ Edit</button>
+            <button onclick="deleteBill('${bill.billNo}')">🗑️ Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById("filterTotal").textContent = `Total for selected filter: ₹${totalFilteredAmount.toFixed(2)}`;
+    }
+
+    function editBill(billNo) {
+      const bill = bills.find(b => b.billNo === billNo);
+      if (!bill) return alert("Bill not found.");
+      localStorage.setItem("editBill", JSON.stringify(bill));
+      window.location.href = "bills.html";
+    }
+
+    function deleteBill(billNo) {
+      if (!confirm(`Delete bill ${billNo}?`)) return;
+      bills = bills.filter(b => b.billNo !== billNo);
+      localStorage.setItem("bills", JSON.stringify(bills));
+      renderFilteredBills();
+      alert("Bill deleted.");
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      alert("Logged out.");
+      window.location.href = "login.html";
+    }
+
+    // Init page
+    toggleFilterInputs();
+    renderFilteredBills();
+  </script>
+</body>
+</html>
